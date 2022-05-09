@@ -130,7 +130,7 @@ class PlayScene extends BaseScene {
         this.pipes = this.physics.add.group();
 
         for (let i = 0; i < this.PIPES_TO_RENDER; i++) {
-            const topPipe = this.pipes.create(0, 0, 'pipe')
+            const topPipe = this.pipes.create(400, 0, 'pipe')
                 .setImmovable().setOrigin(0, 1);
             const bottomPipe = this.pipes.create(0, 0, 'pipe')
                 .setImmovable().setOrigin(0, 0);
