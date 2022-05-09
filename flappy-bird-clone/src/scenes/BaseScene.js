@@ -22,7 +22,7 @@ class BaseScene extends Phaser.Scene {
         let lastMenuPositionY = 0;
 
        menu.forEach((item) => {
-           const menuPosition = [this.screenCenter[0], this.screenCenter[1] + lastMenuPositionY];
+           const menuPosition = [this.screenCenter[0], this.screenCenter[1] + 20 + lastMenuPositionY];
            item.textGO = this.add.text(...menuPosition, item.text, this.fontOptions).setOrigin(0.5, 1)
            lastMenuPositionY += this.lineHeight;
            setupMenuEvents(item);
@@ -37,6 +37,7 @@ class BaseScene extends Phaser.Scene {
  
         backButton.on('pointerdown', () => {
             this.scene.start('MenuScene');
+            localStorage.removeItem('gameOver');
         })
      }
 }

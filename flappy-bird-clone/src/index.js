@@ -34,9 +34,4 @@ const config = {
   scene: initScenes()
 }
 
-// We need to wait until FB SDK is fully loaded
-// FBInstant.initializeAsync().then(() => {
-//   new Phaser.Game(config);
-// })
-
 new Phaser.Game(config);

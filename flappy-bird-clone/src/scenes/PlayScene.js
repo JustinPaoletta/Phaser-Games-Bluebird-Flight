@@ -1,6 +1,6 @@
 import BaseScene from './BaseScene';
 
-class PlayScene extends BaseScene  {
+class PlayScene extends BaseScene {
     constructor(config) {
         super('PlayScene', config);
         this.bird = null;
@@ -40,10 +40,20 @@ class PlayScene extends BaseScene  {
         this.createColliders();
         this.createPause();
         this.listenToEvents();
+        this.playMusic();
+
+        if (!this.sound.get('flap')) {
+            this.sound.add('flap');
+        }
+
+        if (!this.sound.get('splat')) {
+            this.sound.add('splat');
+        }
+
 
         this.anims.create({
             key: 'fly',
-            frames: this.anims.generateFrameNumbers('bird', {start: 8, end: 15}),
+            frames: this.anims.generateFrameNumbers('bird', { start: 8, end: 15 }),
             // 24 fps default, it will play animation consisting of 24 frames in 1 sec
             frameRate: 8,
             // repeat infinitely
@@ -56,6 +66,16 @@ class PlayScene extends BaseScene  {
     update() {
         this.checkGameStatus();
         this.recyclePipes();
+    }
+
+    playMusic() {
+        let theme;
+        if (!this.sound.get('theme')) {
+            theme = this.sound.add('theme');
+        } else {
+            theme = this.sound.get('theme');
+        }
+        theme.play({ loop: true, volume: 0.15 });
     }
 
     listenToEvents() {
@@ -78,6 +98,7 @@ class PlayScene extends BaseScene  {
         this.countDownText.setText('Fly in: ' + this.initialTime);
         if (this.initialTime <= 0) {
             this.isPaused = false;
+            this.playMusic();
             this.countDownText.setText('');
             this.physics.resume();
             this.timedEvent.remove();
@@ -85,7 +106,7 @@ class PlayScene extends BaseScene  {
     }
 
     checkGameStatus() {
-        if (this.bird.getBounds().bottom >= this.config.height || this.bird.y <= 0) {
+        if ((this.bird.y >= 540) || this.bird.y <= 0) {
             this.gameOver();
         }
     }
@@ -125,24 +146,45 @@ class PlayScene extends BaseScene  {
         const bestScore = localStorage.getItem('bestScore');
         this.scoreText = this.add.text(16, 16, `Score ${0}`, {
             fontSize: '32px',
-            fill: '#000'
-        });
-        this.add.text(16, 52, `Best score: ${bestScore || 0}`, {fontSize: '18px', fill: '#000'});
+            fill: '#000',
+            backgroundColor: 'rgba(255,255,255,0.5)',
+            fixedWidth: 200,
+            align: 'center',
+            fixedHeight: 90,
+        }).setPadding(8, 8)
+        this.add.text(16, 70, `Best score: ${bestScore || 0}`,
+            { 
+                fontSize: '18px',
+                fill: '#000',
+                backgroundColor: 'rgba(255,255,255,0.7)',
+                fixedWidth: 200,
+                align: 'center', 
+            });
     }
 
     createPause() {
-       this.isPaused = false;
-       const pauseButton = this.add.image(this.config.width - 10, this.config.height - 10, 'pause')
-       .setInteractive()
-       .setScale(3)
-       .setOrigin(1);
+        this.isPaused = false;
+        const pauseButton = this.add.image(this.config.width - 10, this.config.height - 10, 'pause')
+            .setInteractive()
+            .setScale(3)
+            .setOrigin(1);
 
-       pauseButton.on('pointerdown', () => {
-           this.isPaused = true;
-           this.physics.pause();
-           this.scene.pause();
-           this.scene.launch('PauseScene');
-       })
+        pauseButton.on('pointerdown', () => {
+            this.isPaused = true;
+            this.sound.stopAll();
+            this.physics.pause();
+            this.scene.pause();
+            this.scene.launch('PauseScene');
+        });
+
+        var pauseKey = this.input.keyboard.addKey('Q');
+        pauseKey.on('down', () => {
+            this.isPaused = true;
+            this.sound.stopAll();
+            this.physics.pause();
+            this.scene.pause();
+            this.scene.launch('PauseScene');
+        });
     }
 
     createColliders() {
@@ -152,6 +194,7 @@ class PlayScene extends BaseScene  {
     flap() {
         if (this.isPaused) return;
         this.bird.body.velocity.y = -this.flapVelocity;
+        this.sound.get('flap').play({ loop: false });
     }
 
     increaseScore() {
@@ -224,18 +267,12 @@ class PlayScene extends BaseScene  {
     }
 
     gameOver() {
-        this.physics.pause();
-        this.bird.setTint(0xEE4824);
-
-        this.setBestScore();
-
-        this.time.addEvent({
-            delay: 1000,
-            callback: () => {
-                this.scene.restart();
-            },
-            loop: false
-        })
+        localStorage.setItem('gameOver', 'true');
+        localStorage.setItem('currentScore', this.score);
+        this.sound.get('splat').play({ loop: false });
+        this.sound.stopByKey('theme');
+        this.scene.pause();
+        this.scene.start('ScoreScene');
     }
 }
 
